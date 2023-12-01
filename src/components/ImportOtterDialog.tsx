@@ -112,6 +112,13 @@ export const importSpeech = ({
     },
   }).then((data) => {
     const newBlockUid = window.roamAlphaAPI.util.generateUID();
+    const recordingDate = new Date(data.createdDate * 1000)
+
+    console.log(recordingDate)
+
+    const roamFormatDate = `[[${window.roamAlphaAPI.util.dateToPageTitle(recordingDate)}]]`
+    console.log(roamFormatDate)
+
     let labelWithReplacements = label
       .replace(/{title}/gi, data.title || "Untitled")
       .replace(/{summary}/gi, data.summary)
@@ -121,36 +128,93 @@ export const importSpeech = ({
           : new Date(data.createdDate * 1000).toLocaleString()
       )
       .replace(/{link}/gi, data.link);
+      console.log(data);
+
+    const theTransciptAsOneBlock: String = Object.values(data.transcripts).map(t => t.text).join('\n\n');
+
+    console.log(theTransciptAsOneBlock)
+
+
+
+    // data.transcripts.slice(0, 295).map((t) => {
+    //   return {
+    //     t.text
+    //     text: replaceDateSubstitutions(
+    //       template
+    //         .replace(/{start}/gi, offsetToTimestamp(t.start))
+    //         .replace(/{end}/gi, offsetToTimestamp(t.end))
+    //         .replace(/{text}/gi, t.text)
+    //         .replace(/{speaker(:initials)?}/gi, (_, i) =>
+    //           i
+    //             ? t.speaker
+    //                 .split(" ")
+    //                 .map((s) => `${s.slice(0, 1).toUpperCase()}.`)
+    //                 .join("")
+    //             : t.speaker
+    //         )
+    //     ),
+    //   };
+    // }),
 
     const node = {
       uid: newBlockUid,
       text: replaceDateSubstitutions(labelWithReplacements),
       children: [
-        ...data.transcripts.slice(0, 295).map((t) => {
-          return {
-            text: replaceDateSubstitutions(
-              template
-                .replace(/{start}/gi, offsetToTimestamp(t.start))
-                .replace(/{end}/gi, offsetToTimestamp(t.end))
-                .replace(/{text}/gi, t.text)
-                .replace(/{speaker(:initials)?}/gi, (_, i) =>
-                  i
-                    ? t.speaker
-                        .split(" ")
-                        .map((s) => `${s.slice(0, 1).toUpperCase()}.`)
-                        .join("")
-                    : t.speaker
-                )
-            ),
-          };
-        }),
-        ...(data.transcripts.length > 295
-          ? [
-              {
-                text: "Roam currently only allows 300 blocks to be created at once. If you need larger transcripts to be imported, please reach out to support@roamjs.com!",
-              },
-            ]
-          : []),
+        {
+          text: 'Metadata',
+          children: [
+            {
+              text: 'Date: '+ roamFormatDate,
+              
+            },
+            {
+              text: 'Start time: '+ recordingDate,
+            
+            },
+            // {
+            //   text: 'Folder:' +data.folder,
+            // },
+            {
+              text: 'Link: '+data.link,
+
+            },
+            {
+              text: '{{[[TODO]]}} Moved as needed?',
+        
+            },
+          ],
+        },
+        { text: "[[Transcricpt]]", 
+          children: [ {text: theTransciptAsOneBlock}]
+        }
+        
+         
+
+        //   ...data.transcripts.slice(0, 295).map((t) => {
+        //   return {
+        //     text: replaceDateSubstitutions(
+        //       template
+        //         .replace(/{start}/gi, offsetToTimestamp(t.start))
+        //         .replace(/{end}/gi, offsetToTimestamp(t.end))
+        //         .replace(/{text}/gi, t.text)
+        //         .replace(/{speaker(:initials)?}/gi, (_, i) =>
+        //           i
+        //             ? t.speaker
+        //                 .split(" ")
+        //                 .map((s) => `${s.slice(0, 1).toUpperCase()}.`)
+        //                 .join("")
+        //             : t.speaker
+        //         )
+        //     ),
+        //   };
+        // }),
+        // ...(data.transcripts.length > 295
+        //   ? [
+        //       {
+        //         text: "Roam currently only allows 300 blocks to be created at once. If you need larger transcripts to be imported, please reach out to support@roamjs.com!",
+        //       },
+        //     ]
+        //   : []),
       ],
     };
     const ids =
