@@ -130,45 +130,69 @@ export const importSpeech = ({
       .replace(/{link}/gi, data.link);
       console.log(data);
 
-    const theTransciptAsOneBlock: String = Object.values(data.transcripts).map(t => t.text).join('\n\n');
+
+    function buildTranscript (transcriptLines: Array<{
+      start: number;
+      end: number;
+      text: string;
+      speaker: string;}>) {
+      var listOfLines = []
+      console.log("Entered the buildTranscript function!")
+      for (let index = 0; index < transcriptLines.length; index++) {
+        const line = transcriptLines[index];
+        var stringLine = ""
+        console.log(index)
+        if (index ==0) {
+          stringLine+=`**${line.speaker}**`
+          stringLine+=":\n"
+        }
+        else {
+          if (line.speaker !== transcriptLines[index-1].speaker) {
+          stringLine+=`**${line.speaker}**`
+          stringLine+=":\n"
+          console.log("Going into one of the loops!")
+          }
+        }
+        stringLine+=line.text
+        listOfLines.push(stringLine)
+        console.log(`String ${index}: ${stringLine}`)
+      }
+      return listOfLines.join("\n\n")
+    }
+    console.log("data.transcirpt: ", data.transcripts)
+    console.log("Object.values(data.transcripts): ", Object.values(data.transcripts))
+
+    const theTransciptAsOneBlock:String = buildTranscript(Object.values(data.transcripts))
+
+    // const theTransciptAsOneBlock: String = Object.values(data.transcripts).map(t => t.text).join('\n\n');
 
     console.log(theTransciptAsOneBlock)
 
+    function extractTimeFromDate (fullDateTime: Date) {
+      const hours = fullDateTime.getHours()
+      const minutes = String(fullDateTime.getMinutes()).padStart(2,'0')
 
+      const formattedTime: string = `${hours}:${minutes}`;
+      return formattedTime
 
-    // data.transcripts.slice(0, 295).map((t) => {
-    //   return {
-    //     t.text
-    //     text: replaceDateSubstitutions(
-    //       template
-    //         .replace(/{start}/gi, offsetToTimestamp(t.start))
-    //         .replace(/{end}/gi, offsetToTimestamp(t.end))
-    //         .replace(/{text}/gi, t.text)
-    //         .replace(/{speaker(:initials)?}/gi, (_, i) =>
-    //           i
-    //             ? t.speaker
-    //                 .split(" ")
-    //                 .map((s) => `${s.slice(0, 1).toUpperCase()}.`)
-    //                 .join("")
-    //             : t.speaker
-    //         )
-    //     ),
-    //   };
-    // }),
+    }
+
+  
 
     const node = {
       uid: newBlockUid,
       text: replaceDateSubstitutions(labelWithReplacements),
       children: [
         {
-          text: 'Metadata',
+          text: 'Recroding Metadata',
           children: [
             {
               text: 'Date: '+ roamFormatDate,
               
             },
             {
-              text: 'Start time: '+ recordingDate,
+              text: 'Start time: '+ extractTimeFromDate(recordingDate),
+              // recordingDate
             
             },
             // {

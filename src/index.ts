@@ -68,6 +68,7 @@ export default runExtension(async (args) => {
     parentUid: string,
     onSuccess?: (id: string) => void
   ) => {
+    console.log("we're going into the autoImportRecordings function")
     const email = (args.extensionAPI.settings.get("email") as string) || "";
     const password = localStorageGet("otter-password");
     const label =
@@ -107,9 +108,12 @@ export default runExtension(async (args) => {
     });
   };
 
-  if (args.extensionAPI.settings.get("auto import")) {
+  const uIDofBlockWhereTransciptsGo = "U9b9rcTGM"
+  // note that there was previously a typo here here "auto-import" was missing the "-"
+  if (args.extensionAPI.settings.get("auto-import")) {
+    console.log("autoimport is enabled and running")
     const dateName = window.roamAlphaAPI.util.dateToPageTitle(new Date());
-    autoImportRecordings(getPageUidByPageTitle(dateName), (id) =>
+    autoImportRecordings(uIDofBlockWhereTransciptsGo, (id) =>
       renderToast({
         id: "otter-auto-import",
         content: `Successfully imported otter recording: ${id}!`,
