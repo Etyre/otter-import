@@ -18,6 +18,7 @@ import { Intent } from "@blueprintjs/core";
 import getPageUidByPageTitle from "roamjs-components/queries/getPageUidByPageTitle";
 import React from "react";
 
+
 export default runExtension(async (args) => {
   args.extensionAPI.settings.panel.create({
     tabTitle: "Otter",
@@ -64,6 +65,22 @@ export default runExtension(async (args) => {
       render({ blockUid, extensionAPI: args.extensionAPI }),
   });
 
+
+  function filterOutToday(timeStampInSeconds: number) {
+    const currentDate = Date.now()/1000
+    console.log(currentDate)
+    console.log(currentDate >= timeStampInSeconds + 86400)
+    console.log("timeStampInSeconds (which actually just the object now): ", timeStampInSeconds)
+
+    if (currentDate >= timeStampInSeconds + 86400){
+      console.log(true)
+      return true
+    }else{
+      console.log(false)
+      return false
+    }
+  }
+
   const autoImportRecordings = (
     parentUid: string,
     onSuccess?: (id: string) => void
@@ -92,6 +109,8 @@ export default runExtension(async (args) => {
       return Promise.all(
         r.speeches
           .filter((s) => !importedIds.has(s.id))
+          .filter((s) => filterOutToday(s.createdDate))
+          // I know that there's an error in the line above, but this line works and the line that it recommends doesn't work.
           .map((s, i) =>
             importSpeech({
               credentials: { email, password },
@@ -108,6 +127,7 @@ export default runExtension(async (args) => {
     });
   };
 
+  
   const uIDofBlockWhereTransciptsGo = "U9b9rcTGM"
   // note that there was previously a typo here here "auto-import" was missing the "-"
   if (args.extensionAPI.settings.get("auto-import")) {
@@ -122,7 +142,7 @@ export default runExtension(async (args) => {
     ).then((count) =>
       renderToast({
         id: "otter-auto-import",
-        content: `Successfully imported ${count} latest otter recordings automatically to ${dateName}!`,
+        content: `Successfully imported ${count} latest otter recordings automatically at block ${uIDofBlockWhereTransciptsGo} on ${getPageTitleByBlockUid(uIDofBlockWhereTransciptsGo)}!`,
         intent: Intent.SUCCESS,
       })
     );

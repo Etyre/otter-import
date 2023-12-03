@@ -181,17 +181,19 @@ export const importSpeech = ({
 
     const node = {
       uid: newBlockUid,
-      text: replaceDateSubstitutions(labelWithReplacements),
-      children: [
-        {
+      text: roamFormatDate,
+      children: [{
+        text: "[[Automated transcirpt from otter]]",
+        children: [
+          {
           text: 'Recroding Metadata',
           children: [
             {
-              text: 'Date: '+ roamFormatDate,
+              text: 'Date:: '+ roamFormatDate,
               
             },
             {
-              text: 'Start time: '+ extractTimeFromDate(recordingDate),
+              text: 'Start time:: '+ extractTimeFromDate(recordingDate),
               // recordingDate
             
             },
@@ -199,7 +201,7 @@ export const importSpeech = ({
             //   text: 'Folder:' +data.folder,
             // },
             {
-              text: 'Link: '+data.link,
+              text: 'Otter Link:: '+data.link,
 
             },
             {
@@ -208,38 +210,12 @@ export const importSpeech = ({
             },
           ],
         },
-        { text: "[[Transcricpt]]", 
+        { text: "{{[[TODO]]}} [[Transcricpt]]", 
           children: [ {text: theTransciptAsOneBlock}]
         }
-        
-         
-
-        //   ...data.transcripts.slice(0, 295).map((t) => {
-        //   return {
-        //     text: replaceDateSubstitutions(
-        //       template
-        //         .replace(/{start}/gi, offsetToTimestamp(t.start))
-        //         .replace(/{end}/gi, offsetToTimestamp(t.end))
-        //         .replace(/{text}/gi, t.text)
-        //         .replace(/{speaker(:initials)?}/gi, (_, i) =>
-        //           i
-        //             ? t.speaker
-        //                 .split(" ")
-        //                 .map((s) => `${s.slice(0, 1).toUpperCase()}.`)
-        //                 .join("")
-        //             : t.speaker
-        //         )
-        //     ),
-        //   };
-        // }),
-        // ...(data.transcripts.length > 295
-        //   ? [
-        //       {
-        //         text: "Roam currently only allows 300 blocks to be created at once. If you need larger transcripts to be imported, please reach out to support@roamjs.com!",
-        //       },
-        //     ]
-        //   : []),
       ],
+      }
+    ],
     };
     const ids =
       (extensionAPI.settings.get("ids") as Record<string, string>) || {};
