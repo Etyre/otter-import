@@ -186,7 +186,7 @@ export const importSpeech = ({
 
   
 
-    const node = {
+    const defaultNode = {
       uid: newBlockUid,
       text: roamFormatDate,
       children: [{
@@ -211,6 +211,47 @@ export const importSpeech = ({
               text: 'Otter Link:: '+data.link,
 
             },
+
+          ],
+        },
+        { text: "{{[[TODO]]}} [[Transcricpt]]", 
+          children: [ {text: theTransciptAsOneBlock}]
+        }
+      ],
+      }
+    ],
+    };
+
+
+    const audioNotesNode = {
+      uid: newBlockUid,
+      text: roamFormatDate,
+      children: [{
+        text: "[[Automated transcirpt from otter]] #[[transcribed verbal notes]]",
+        children: [
+          {
+          text: 'Recroding Metadata',
+          children: [
+            {
+              text: 'Date:: '+ roamFormatDate,
+              
+            },
+            {
+              text: 'Start time:: '+ extractTimeFromDate(recordingDate),
+              // recordingDate
+            
+            },
+            // {
+            //   text: 'Folder:' +data.folder,
+            // },
+            {
+              text: 'Otter Link:: '+data.link,
+
+            },
+            {
+              text: 'Source::',
+        
+            },
             {
               text: '{{[[TODO]]}} Moved as needed?',
         
@@ -225,10 +266,44 @@ export const importSpeech = ({
     ],
     };
 
+    const walkingJournalNode = {
+      uid: newBlockUid,
+      text: `${roamFormatDate} #[[Walking Journal]]`,
+      children: [{
+        text: "[[Automated transcirpt from otter]]",
+        children: [
+          {
+          text: 'Recroding Metadata',
+          children: [
+            {
+              text: 'Date:: '+ roamFormatDate,
+              
+            },
+            {
+              text: 'Start time:: '+ extractTimeFromDate(recordingDate),
+              // recordingDate
+            
+            },
+            // {
+            //   text: 'Folder:' +data.folder,
+            // },
+            {
+              text: 'Otter Link:: '+data.link,
+
+            },
+  
+          ],
+        },
+        { text: "{{[[TODO]]}} [[Transcricpt]]", 
+          children: [ {text: theTransciptAsOneBlock}]
+        }
+      ],
+      }
+    ],
+    };
 
 
-
-
+    let node = defaultNode
 
     const ids =
       (extensionAPI.settings.get("ids") as Record<string, string>) || {};
@@ -238,9 +313,13 @@ export const importSpeech = ({
         // check if this is in the walking journal folder
         if (data.folder.id == 1072467) {
           parentUid = walkingJournal_UIDofBlockWhereTransciptsGo
+          node = walkingJournalNode
         // check if this is in the audio notes folder
         }else if(data.folder.id == 961073) {
-          parentUid = audioNotes_UIDofBlockWhereTransciptsGo}
+          parentUid = audioNotes_UIDofBlockWhereTransciptsGo
+          node = audioNotesNode
+        
+        }
       }
 
       return createBlock({
