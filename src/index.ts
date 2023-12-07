@@ -18,6 +18,14 @@ import { Intent } from "@blueprintjs/core";
 import getPageUidByPageTitle from "roamjs-components/queries/getPageUidByPageTitle";
 import React from "react";
 
+// Important hardcoded block info:
+
+const audioNotes_UIDofBlockWhereTransciptsGo = "aC2ApL4Ha"
+const walkingJournal_UIDofBlockWhereTransciptsGo = "-zyCLNaaI"
+
+export { audioNotes_UIDofBlockWhereTransciptsGo, walkingJournal_UIDofBlockWhereTransciptsGo}
+
+
 
 export default runExtension(async (args) => {
   args.extensionAPI.settings.panel.create({
@@ -37,6 +45,12 @@ export default runExtension(async (args) => {
           type: "reactComponent",
           component: () => React.createElement(PasswordField),
         },
+      },
+      {
+        action: { type: "input", placeholder: "U9b9rcTGM" },
+        id: "default-parent-block",
+        description: "The place where your transcripts will show up (unless you did some silly hardcoding)",
+        name: "Default Parent Block",
       },
       {
         action: { type: "input", placeholder: DEFAULT_LABEL },
@@ -59,6 +73,10 @@ export default runExtension(async (args) => {
     ],
   });
 
+  const default_UIDofBlockWhereTransciptsGo = args.extensionAPI.settings.get("default-parent-block")
+
+
+
   addBlockCommand({
     label: "Import Otter",
     callback: (blockUid) =>
@@ -68,15 +86,10 @@ export default runExtension(async (args) => {
 
   function filterOutToday(timeStampInSeconds: number) {
     const currentDate = Date.now()/1000
-    console.log(currentDate)
-    console.log(currentDate >= timeStampInSeconds + 86400)
-    console.log("timeStampInSeconds (which actually just the object now): ", timeStampInSeconds)
 
     if (currentDate >= timeStampInSeconds + 86400){
-      console.log(true)
       return true
     }else{
-      console.log(false)
       return false
     }
   }
@@ -100,16 +113,19 @@ export default runExtension(async (args) => {
         email,
         password,
         operation: "GET_SPEECHES",
+        params: { pageSize: 25 },
       },
     }).then((r) => {
       const ids =
         (args.extensionAPI.settings.get("ids") as Record<string, string>) || {};
       const importedIds = new Set(Object.keys(ids));
       const bottom = getChildrenLengthByPageUid(parentUid);
+      console.log(r)
       return Promise.all(
         r.speeches
           .filter((s) => !importedIds.has(s.id))
-          .filter((s) => filterOutToday(s.createdDate))
+          .filter((s) => s.isProcessed)
+          // .sort(((a, b) => a - b))
           // I know that there's an error in the line above, but this line works and the line that it recommends doesn't work.
           .map((s, i) =>
             importSpeech({
@@ -124,16 +140,26 @@ export default runExtension(async (args) => {
             })
           )
       ).then((r) => r.flat());
+
+
+
+
+
+
+
     });
   };
 
   
-  const uIDofBlockWhereTransciptsGo = "U9b9rcTGM"
+  
+
+
+
   // note that there was previously a typo here here "auto-import" was missing the "-"
   if (args.extensionAPI.settings.get("auto-import")) {
     console.log("autoimport is enabled and running")
     const dateName = window.roamAlphaAPI.util.dateToPageTitle(new Date());
-    autoImportRecordings(uIDofBlockWhereTransciptsGo, (id) =>
+    autoImportRecordings(default_UIDofBlockWhereTransciptsGo, (id) =>
       renderToast({
         id: "otter-auto-import",
         content: `Successfully imported otter recording: ${id}!`,
@@ -142,7 +168,7 @@ export default runExtension(async (args) => {
     ).then((count) =>
       renderToast({
         id: "otter-auto-import",
-        content: `Successfully imported ${count} latest otter recordings automatically at block ${uIDofBlockWhereTransciptsGo} on ${getPageTitleByBlockUid(uIDofBlockWhereTransciptsGo)}!`,
+        content: `Successfully imported ${count} latest otter recordings automatically at block on your graph!`,
         intent: Intent.SUCCESS,
       })
     );

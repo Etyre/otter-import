@@ -20,6 +20,9 @@ import localStorageGet from "roamjs-components/util/localStorageGet";
 import apiPost from "roamjs-components/util/apiPost";
 import type { InputTextNode, OnloadArgs } from "roamjs-components/types";
 
+import  { default_UIDofBlockWhereTransciptsGo, walkingJournal_UIDofBlockWhereTransciptsGo, audioNotes_UIDofBlockWhereTransciptsGo } from "../index";
+
+
 export type OtterSpeech = {
   speech_id: string;
   title: string;
@@ -27,6 +30,11 @@ export type OtterSpeech = {
   summary: string;
   otid: string;
   id: string;
+  isProcessed: boolean;
+  folder?: {
+    id: number;
+    name: string;
+  } | null
 };
 export type OtterSpeechInfo = {
   speech_id: string;
@@ -35,6 +43,10 @@ export type OtterSpeechInfo = {
   summary: string;
   otid: string;
   id: string;
+  folder?: {
+    id: number;
+    name: string;
+  } | null
   transcripts: {
     transcript: string;
     start_offset: number;
@@ -96,6 +108,10 @@ export const importSpeech = ({
     summary: string;
     createdDate: number;
     link: string;
+    folder?: {
+      id: number;
+      name: string;
+    } | null
     transcripts: {
       start: number;
       end: number;
@@ -114,10 +130,7 @@ export const importSpeech = ({
     const newBlockUid = window.roamAlphaAPI.util.generateUID();
     const recordingDate = new Date(data.createdDate * 1000)
 
-    console.log(recordingDate)
-
     const roamFormatDate = `[[${window.roamAlphaAPI.util.dateToPageTitle(recordingDate)}]]`
-    console.log(roamFormatDate)
 
     let labelWithReplacements = label
       .replace(/{title}/gi, data.title || "Untitled")
@@ -128,7 +141,7 @@ export const importSpeech = ({
           : new Date(data.createdDate * 1000).toLocaleString()
       )
       .replace(/{link}/gi, data.link);
-      console.log(data);
+      // console.log(data);
 
 
     function buildTranscript (transcriptLines: Array<{
@@ -141,32 +154,26 @@ export const importSpeech = ({
       for (let index = 0; index < transcriptLines.length; index++) {
         const line = transcriptLines[index];
         var stringLine = ""
-        console.log(index)
+        // console.log(index)
         if (index ==0) {
-          stringLine+=`**${line.speaker}**`
+          stringLine+=`${line.speaker}`
           stringLine+=":\n"
         }
         else {
           if (line.speaker !== transcriptLines[index-1].speaker) {
-          stringLine+=`**${line.speaker}**`
+          stringLine+=`${line.speaker}`
           stringLine+=":\n"
-          console.log("Going into one of the loops!")
           }
         }
         stringLine+=line.text
         listOfLines.push(stringLine)
-        console.log(`String ${index}: ${stringLine}`)
       }
       return listOfLines.join("\n\n")
     }
-    console.log("data.transcirpt: ", data.transcripts)
-    console.log("Object.values(data.transcripts): ", Object.values(data.transcripts))
 
     const theTransciptAsOneBlock:String = buildTranscript(Object.values(data.transcripts))
 
     // const theTransciptAsOneBlock: String = Object.values(data.transcripts).map(t => t.text).join('\n\n');
-
-    console.log(theTransciptAsOneBlock)
 
     function extractTimeFromDate (fullDateTime: Date) {
       const hours = fullDateTime.getHours()
@@ -217,10 +224,25 @@ export const importSpeech = ({
       }
     ],
     };
+
+
+
+
+
+
     const ids =
       (extensionAPI.settings.get("ids") as Record<string, string>) || {};
 
     if (onSuccess) {
+      if (data.folder !== null){
+        // check if this is in the walking journal folder
+        if (data.folder.id == 1072467) {
+          parentUid = walkingJournal_UIDofBlockWhereTransciptsGo
+        // check if this is in the audio notes folder
+        }else if(data.folder.id == 961073) {
+          parentUid = audioNotes_UIDofBlockWhereTransciptsGo}
+      }
+
       return createBlock({
         parentUid,
         node,
@@ -262,6 +284,10 @@ const ImportOtterDialog = ({
   const [lastLoad, setLastLoad] = useState(0);
   const [lastModified, setLastModified] = useState(0);
   const [isEnd, setIsEnd] = useState(false);
+
+
+  // let tenDaysAgo: Number = Date.now()/1000 - 259200;
+
   useEffect(() => {
     if (initialLoading) {
       setError("");
@@ -280,6 +306,7 @@ const ImportOtterDialog = ({
         },
       })
         .then((r) => {
+          console.log(r)
           setInitialLoading(false);
           if (!isEnd) {
             setSpeeches([...speeches, ...r.speeches]);
