@@ -20,8 +20,9 @@ import React from "react";
 
 // Important hardcoded block info:
 
-let default_UIDofBlockWhereTransciptsGo: string
+// let default_UIDofBlockWhereTransciptsGo: string
 // This is an empty variable. We're going to define it later, via the settings pannel.
+const default_UIDofBlockWhereTransciptsGo = "U9b9rcTGM"
 const audioNotes_UIDofBlockWhereTransciptsGo = "aC2ApL4Ha"
 const walkingJournal_UIDofBlockWhereTransciptsGo = "-zyCLNaaI"
 
@@ -76,7 +77,8 @@ export default runExtension(async (args) => {
     ],
   });
 
-  default_UIDofBlockWhereTransciptsGo = args.extensionAPI.settings.get("default-parent-block")
+  // default_UIDofBlockWhereTransciptsGo = args.extensionAPI.settings.get("default-parent-block")
+
 
   // This adds a command to the Roam command pallet.
   addBlockCommand({
@@ -102,6 +104,7 @@ export default runExtension(async (args) => {
     onSuccess?: (id: string) => void
   ) => {
     console.log("we're going into the autoImportRecordings function")
+    console.log("default_UIDofBlockWhereTransciptsGo is: ",default_UIDofBlockWhereTransciptsGo)
     const email = (args.extensionAPI.settings.get("email") as string) || "";
     const password = localStorageGet("otter-password");
     const label =
@@ -116,7 +119,7 @@ export default runExtension(async (args) => {
         email,
         password,
         operation: "GET_SPEECHES",
-        // params: { pageSize: 10 },
+        params: { pageSize: 10 },
       },
     }).then((r) => {
       const ids =
@@ -126,7 +129,7 @@ export default runExtension(async (args) => {
       console.log(r)
       return Promise.all(
         r.speeches
-          .filter((s) => !importedIds.has(s.id))
+          // .filter((s) => !importedIds.has(s.id))
           .filter((s) => s.isProcessed)
           // .sort(((a, b) => a - b))
           // I know that there's an error in the line above, but this line works and the line that it recommends doesn't work.
@@ -140,6 +143,7 @@ export default runExtension(async (args) => {
               extensionAPI: args.extensionAPI,
               parentUid,
               order: bottom + i,
+              manualImport: false,
             })
           )
       ).then((r) => r.flat());

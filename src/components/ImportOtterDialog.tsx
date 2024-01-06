@@ -56,8 +56,6 @@ export type OtterSpeechInfo = {
   speakers: { speaker_id: string; speaker_name: string; id: string }[];
 };
 
-
-
 type DialogProps = {
   blockUid: string;
   extensionAPI: OnloadArgs["extensionAPI"];
@@ -100,6 +98,8 @@ export const importSpeech = ({
   template,
   onSuccess,
   extensionAPI,
+  manualImport=true,
+  //This argument tells if we're calling the function as part of autoImportRecordings or as part of the command pallet addBlockCommand
 }: {
   credentials: { email: string; password: string };
   id: string;
@@ -109,6 +109,7 @@ export const importSpeech = ({
   template: string;
   onSuccess?: (id: string) => void;
   extensionAPI: OnloadArgs["extensionAPI"];
+  manualImport?: boolean
 }): Promise<InputTextNode[]> =>
   apiPost<{
     title: string;
@@ -315,17 +316,21 @@ export const importSpeech = ({
       (extensionAPI.settings.get("ids") as Record<string, string>) || {};
 
     // If the onSuccess function is passed into this whole import speach function, then we do some stuff.
-    // First, we check the otter folder of the recording, and set the node template depending.
+    // First, we check if this is a manual or an automatic import. IFF it's an automatic import, we check the otter folder of the recording, and set the node template depending.
     if (onSuccess) {
-      if (data.folder !== null){
-        // check if this is in the walking journal folder
-        if (data.folder.id == 1072467) {
-          parentUid = walkingJournal_UIDofBlockWhereTransciptsGo
-          node = walkingJournalNode
-        // check if this is in the audio notes folder
-        }else if(data.folder.id == 961073) {
-          parentUid = audioNotes_UIDofBlockWhereTransciptsGo
-          node = audioNotesNode
+      console.log("This is the parentUid: ",parentUid)
+      if (manualImport == false) {
+        console.log("This is an autoimprt")
+        if (data.folder !== null){
+          // check if this is in the walking journal folder
+          if (data.folder.id == 1072467) {
+            parentUid = walkingJournal_UIDofBlockWhereTransciptsGo
+            node = walkingJournalNode
+          // check if this is in the audio notes folder
+          }else if(data.folder.id == 961073) {
+            parentUid = audioNotes_UIDofBlockWhereTransciptsGo
+            node = audioNotesNode
+          }
         }
       }
       //Second, we create a block on the graph.
@@ -440,6 +445,7 @@ const ImportOtterDialog = ({
       onClose={onDeleteClose}
       autoFocus={false}
       enforceFocus={false}
+      style={{width:"600px"}}
     >
       <div className={Classes.DIALOG_BODY}>
         <RadioGroup
