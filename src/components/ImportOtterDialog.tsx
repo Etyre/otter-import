@@ -22,7 +22,7 @@ import type { InputTextNode, OnloadArgs } from "roamjs-components/types";
 
 import  { default_UIDofBlockWhereTransciptsGo, walkingJournal_UIDofBlockWhereTransciptsGo, audioNotes_UIDofBlockWhereTransciptsGo } from "../index";
 
-
+// Here we're defining two types, which match the Same Page API that we can use later.
 export type OtterSpeech = {
   speech_id: string;
   title: string;
@@ -56,34 +56,41 @@ export type OtterSpeechInfo = {
   speakers: { speaker_id: string; speaker_name: string; id: string }[];
 };
 
+
+
 type DialogProps = {
   blockUid: string;
   extensionAPI: OnloadArgs["extensionAPI"];
 };
 
-const offsetToTimestamp = (offset?: number) => {
-  if (!offset) {
-    return "00:00";
-  }
-  const totalSeconds = Math.round(offset / 16000);
-  const seconds = totalSeconds % 60;
-  const minutes = Math.floor(totalSeconds / 60);
-  return `${minutes}:${`${seconds}`.padStart(2, "0")}`;
-};
+// These are two legacy functions that we're not using any more.
 
-const replaceDateSubstitutions = (text: string) =>
-  text
-    .replace(
-      /{today}/gi,
-      `[[${window.roamAlphaAPI.util.dateToPageTitle(new Date())}]]`
-    )
-    .replace(
-      /{tomorrow}/gi,
-      `[[${window.roamAlphaAPI.util.dateToPageTitle(addDays(new Date(), 1))}]]`
-    );
+// const offsetToTimestamp = (offset?: number) => {
+//   if (!offset) {
+//     return "00:00";
+//   }
+//   const totalSeconds = Math.round(offset / 16000);
+//   const seconds = totalSeconds % 60;
+//   const minutes = Math.floor(totalSeconds / 60);
+//   return `${minutes}:${`${seconds}`.padStart(2, "0")}`;
+// };
+
+// const replaceDateSubstitutions = (text: string) =>
+//   text
+//     .replace(
+//       /{today}/gi,
+//       `[[${window.roamAlphaAPI.util.dateToPageTitle(new Date())}]]`
+//     )
+//     .replace(
+//       /{tomorrow}/gi,
+//       `[[${window.roamAlphaAPI.util.dateToPageTitle(addDays(new Date(), 1))}]]`
+//     );
 
 export const DEFAULT_LABEL = `{title} - {summary} ({created-date})`;
 export const DEFAULT_TEMPLATE = `{start} - {end} - {text}`;
+
+// This is the core function of this extension. 
+// It grabs the details of a otter recording from the Same Page API.
 export const importSpeech = ({
   credentials,
   id,
@@ -132,18 +139,21 @@ export const importSpeech = ({
 
     const roamFormatDate = `[[${window.roamAlphaAPI.util.dateToPageTitle(recordingDate)}]]`
 
-    let labelWithReplacements = label
-      .replace(/{title}/gi, data.title || "Untitled")
-      .replace(/{summary}/gi, data.summary)
-      .replace(/{created-date(?::(.*?))?}/gi, (_, i) =>
-        i
-          ? format(new Date(data.createdDate * 1000), i)
-          : new Date(data.createdDate * 1000).toLocaleString()
-      )
-      .replace(/{link}/gi, data.link);
+    // This is the functionality that takes the template, and fills it in with the data returned from the 
+    // API. My version, doesn't use this.
+    // let labelWithReplacements = label
+    //   .replace(/{title}/gi, data.title || "Untitled")
+    //   .replace(/{summary}/gi, data.summary)
+    //   .replace(/{created-date(?::(.*?))?}/gi, (_, i) =>
+    //     i
+    //       ? format(new Date(data.createdDate * 1000), i)
+    //       : new Date(data.createdDate * 1000).toLocaleString()
+    //   )
+    //   .replace(/{link}/gi, data.link);
+
       // console.log(data);
 
-
+    // This is basically appending a bunch of lines together.
     function buildTranscript (transcriptLines: Array<{
       start: number;
       end: number;
@@ -171,9 +181,8 @@ export const importSpeech = ({
       return listOfLines.join("\n\n")
     }
 
+    // Calling the function above.
     const theTransciptAsOneBlock:String = buildTranscript(Object.values(data.transcripts))
-
-    // const theTransciptAsOneBlock: String = Object.values(data.transcripts).map(t => t.text).join('\n\n');
 
     function extractTimeFromDate (fullDateTime: Date) {
       const hours = fullDateTime.getHours()
@@ -181,11 +190,9 @@ export const importSpeech = ({
 
       const formattedTime: string = `${hours}:${minutes}`;
       return formattedTime
-
     }
 
-  
-
+    // These are our node templates
     const defaultNode = {
       uid: newBlockUid,
       text: roamFormatDate,
@@ -221,7 +228,6 @@ export const importSpeech = ({
       }
     ],
     };
-
 
     const audioNotesNode = {
       uid: newBlockUid,
@@ -302,12 +308,14 @@ export const importSpeech = ({
     ],
     };
 
-
     let node = defaultNode
 
+    // This is a dictionary where we store all the otter ids of recordings that haven been imported.
     const ids =
       (extensionAPI.settings.get("ids") as Record<string, string>) || {};
 
+    // If the onSuccess function is passed into this whole import speach function, then we do some stuff.
+    // First, we check the otter folder of the recording, and set the node template depending.
     if (onSuccess) {
       if (data.folder !== null){
         // check if this is in the walking journal folder
@@ -318,26 +326,32 @@ export const importSpeech = ({
         }else if(data.folder.id == 961073) {
           parentUid = audioNotes_UIDofBlockWhereTransciptsGo
           node = audioNotesNode
-        
         }
       }
-
+      //Second, we create a block on the graph.
       return createBlock({
         parentUid,
         node,
         order,
       })
+        //Third, we update the list of otter ids.
         .then(() =>
           extensionAPI.settings.set("ids", { ...ids, [id]: newBlockUid })
         )
+        // Fourth, we call the onSuccess function, which does <unknown>.
         .then(() => onSuccess(id))
+        // Fifth, this weird thing. I don't know what this is or why it's there.
+        // Guess: this is so that, if this fails, there's still an (empty) list that we can run checksums against.
         .then(() => []);
-    } else {
+    } 
+    // I don't know what this else block is doing.
+    else {
       extensionAPI.settings.set("ids", { ...ids, [id]: newBlockUid });
       return [node];
     }
   });
 
+// This is a react component, of window from which you you can select recording manually.
 const ImportOtterDialog = ({
   onClose,
   blockUid,
@@ -364,9 +378,7 @@ const ImportOtterDialog = ({
   const [lastModified, setLastModified] = useState(0);
   const [isEnd, setIsEnd] = useState(false);
 
-
-  // let tenDaysAgo: Number = Date.now()/1000 - 259200;
-
+  // When you open the otter dialog, this does an api call to get the list of transcripts.
   useEffect(() => {
     if (initialLoading) {
       setError("");
@@ -384,6 +396,7 @@ const ImportOtterDialog = ({
           params: { lastLoad, lastModified },
         },
       })
+        // r is the thing being returned. r for "result", probably.
         .then((r) => {
           console.log(r)
           setInitialLoading(false);
@@ -394,6 +407,7 @@ const ImportOtterDialog = ({
             setIsEnd(r.isEnd);
           }
         })
+        // error catching for if the API call fails.
         .catch((e) => {
           setError(e.response?.data || e.message);
           setInitialLoading(false);
@@ -417,6 +431,7 @@ const ImportOtterDialog = ({
     deleteBlock(blockUid);
   }, [blockUid, onClose]);
   return (
+    // This is the description of the dialog box.
     <Dialog
       isOpen={true}
       canEscapeKeyClose
@@ -499,9 +514,16 @@ const ImportOtterDialog = ({
   );
 };
 
+// We're exporting the popup.
+// We constructed ImportOtterDialog, which is formatted for createOverlayRender.
+// createOverlayRender is a a wraper function for creating popup dialogs that returns type DialogProps. 
 export const render = createOverlayRender<DialogProps>(
   "otter-import",
   ImportOtterDialog
 );
 
 export default ImportOtterDialog;
+// Here 👆 we're exporting this react component. 
+
+// It's unclear why we're exporting both of these at this time.
+

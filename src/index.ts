@@ -20,13 +20,16 @@ import React from "react";
 
 // Important hardcoded block info:
 
+let default_UIDofBlockWhereTransciptsGo: string
+// This is an empty variable. We're going to define it later, via the settings pannel.
 const audioNotes_UIDofBlockWhereTransciptsGo = "aC2ApL4Ha"
 const walkingJournal_UIDofBlockWhereTransciptsGo = "-zyCLNaaI"
 
 export { audioNotes_UIDofBlockWhereTransciptsGo, walkingJournal_UIDofBlockWhereTransciptsGo}
+// Exporting to import otter dialog
 
-
-
+// This 👇 is the default function that roam calls when it loads the extention. 
+// In this case, it's making a settings pannel.
 export default runExtension(async (args) => {
   args.extensionAPI.settings.panel.create({
     tabTitle: "Otter",
@@ -73,27 +76,27 @@ export default runExtension(async (args) => {
     ],
   });
 
-  const default_UIDofBlockWhereTransciptsGo = args.extensionAPI.settings.get("default-parent-block")
+  default_UIDofBlockWhereTransciptsGo = args.extensionAPI.settings.get("default-parent-block")
 
-
-
+  // This adds a command to the Roam command pallet.
   addBlockCommand({
     label: "Import Otter",
     callback: (blockUid) =>
       render({ blockUid, extensionAPI: args.extensionAPI }),
   });
 
+  // 👇 This is a legacy function. We've got a better alternative now.
+  // function filterOutToday(timeStampInSeconds: number) {
+  //   const currentDate = Date.now()/1000
 
-  function filterOutToday(timeStampInSeconds: number) {
-    const currentDate = Date.now()/1000
+  //   if (currentDate >= timeStampInSeconds + 86400){
+  //     return true
+  //   }else{
+  //     return false
+  //   }
+  // }
 
-    if (currentDate >= timeStampInSeconds + 86400){
-      return true
-    }else{
-      return false
-    }
-  }
-
+  //This is the function that we'll run on refresh. It imports the most recent n recordings?
   const autoImportRecordings = (
     parentUid: string,
     onSuccess?: (id: string) => void
@@ -113,7 +116,7 @@ export default runExtension(async (args) => {
         email,
         password,
         operation: "GET_SPEECHES",
-        params: { pageSize: 25 },
+        // params: { pageSize: 10 },
       },
     }).then((r) => {
       const ids =
@@ -141,17 +144,8 @@ export default runExtension(async (args) => {
           )
       ).then((r) => r.flat());
 
-
-
-
-
-
-
     });
   };
-
-  
-  
 
 
 
@@ -174,6 +168,7 @@ export default runExtension(async (args) => {
     );
   }
 
+  // This allows for creating a smart block command that runs the autoimport function.
   registerSmartBlocksCommand({
     text: "OTTER",
     handler: (context: { targetUid: string }) => () =>
@@ -183,6 +178,8 @@ export default runExtension(async (args) => {
       ),
   });
 
+  // Exposes the functions in the autoimport to the window (which is visible in the console). 
+  // This allows this extention to talk to other code running on the graph.
   window.roamjs.extension.otter = {
     importOtter: (
       parentUid = window.roamAlphaAPI.util.dateToPageUid(new Date())
