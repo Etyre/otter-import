@@ -20,11 +20,22 @@ import React from "react";
 
 // Important hardcoded block info:
 
-// let default_UIDofBlockWhereTransciptsGo: string
-// This is an empty variable. We're going to define it later, via the settings pannel.
-const default_UIDofBlockWhereTransciptsGo = "U9b9rcTGM"
-const audioNotes_UIDofBlockWhereTransciptsGo = "aC2ApL4Ha"
-const walkingJournal_UIDofBlockWhereTransciptsGo = "-zyCLNaaI"
+
+let default_UIDofBlockWhereTransciptsGo: string
+let audioNotes_UIDofBlockWhereTransciptsGo
+let walkingJournal_UIDofBlockWhereTransciptsGo
+
+// This checks the name of the graph that this extention is running on, and uses a different set of blockUids, depending.
+
+if (window.roamAlphaAPI.graph.name=="eli") {
+  default_UIDofBlockWhereTransciptsGo = "XklHE41xj"
+  audioNotes_UIDofBlockWhereTransciptsGo = "s-5xEaixB"
+  walkingJournal_UIDofBlockWhereTransciptsGo = "emnmpImCB"}
+else{
+  default_UIDofBlockWhereTransciptsGo = "U9b9rcTGM"
+  audioNotes_UIDofBlockWhereTransciptsGo = "aC2ApL4Ha"
+  walkingJournal_UIDofBlockWhereTransciptsGo = "-zyCLNaaI"  
+  }
 
 export { audioNotes_UIDofBlockWhereTransciptsGo, walkingJournal_UIDofBlockWhereTransciptsGo}
 // Exporting to import otter dialog
@@ -129,7 +140,7 @@ export default runExtension(async (args) => {
       console.log(r)
       return Promise.all(
         r.speeches
-          // .filter((s) => !importedIds.has(s.id))
+          .filter((s) => !importedIds.has(s.id))
           .filter((s) => s.isProcessed)
           // .sort(((a, b) => a - b))
           // I know that there's an error in the line above, but this line works and the line that it recommends doesn't work.
