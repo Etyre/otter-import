@@ -22,8 +22,8 @@ import React from "react";
 
 
 let default_UIDofBlockWhereTransciptsGo: string
-let audioNotes_UIDofBlockWhereTransciptsGo
-let walkingJournal_UIDofBlockWhereTransciptsGo
+let audioNotes_UIDofBlockWhereTransciptsGo: string
+let walkingJournal_UIDofBlockWhereTransciptsGo: string
 
 // This checks the name of the graph that this extention is running on, and uses a different set of blockUids, depending.
 
