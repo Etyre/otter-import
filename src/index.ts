@@ -43,6 +43,9 @@ export { audioNotes_UIDofBlockWhereTransciptsGo, walkingJournal_UIDofBlockWhereT
 // This 👇 is the default function that roam calls when it loads the extention. 
 // In this case, it's making a settings pannel.
 export default runExtension(async (args) => {
+  if (!args.extensionAPI.settings.get('lastRunDatetime')) {
+    await args.extensionAPI.settings.set('lastRunDatetime', new Date(0));
+  }
   args.extensionAPI.settings.panel.create({
     tabTitle: "Otter",
     settings: [
@@ -115,6 +118,7 @@ export default runExtension(async (args) => {
     onSuccess?: (id: string) => void
   ) => {
     console.log("we're going into the autoImportRecordings function")
+    args.extensionAPI.settings.set('lastRunDatetime', new Date())
     console.log("default_UIDofBlockWhereTransciptsGo is: ",default_UIDofBlockWhereTransciptsGo)
     const email = (args.extensionAPI.settings.get("email") as string) || "";
     const password = localStorageGet("otter-password");
@@ -160,6 +164,7 @@ export default runExtension(async (args) => {
       ).then((r) => r.flat());
 
     });
+    
   };
 
 
@@ -168,6 +173,11 @@ export default runExtension(async (args) => {
   if (args.extensionAPI.settings.get("auto-import")) {
     console.log("autoimport is enabled and running")
     const dateName = window.roamAlphaAPI.util.dateToPageTitle(new Date());
+    const lastRunDatetime = args.extensionAPI.settings.get('lastRunDatetime');
+    const currentDatetime = new Date();
+    console.log(currentDatetime)
+    console.log((currentDatetime.getTime() - lastRunDatetime.getTime()) > (3600000))
+    if ((currentDatetime.getTime() - lastRunDatetime.getTime()) > (3600000) ) {
     autoImportRecordings(default_UIDofBlockWhereTransciptsGo, (id) =>
       renderToast({
         id: "otter-auto-import",
@@ -181,6 +191,7 @@ export default runExtension(async (args) => {
         intent: Intent.SUCCESS,
       })
     );
+    }
   }
 
   // This allows for creating a smart block command that runs the autoimport function.
