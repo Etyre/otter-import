@@ -259,10 +259,6 @@ export const importSpeech = ({
               text: 'Source::',
         
             },
-            {
-              text: '{{[[TODO]]}} Moved as needed?',
-        
-            },
           ],
         },
         { text: "{{[[TODO]]}} [[Transcricpt]]", 
