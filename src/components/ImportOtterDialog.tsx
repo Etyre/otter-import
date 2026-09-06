@@ -198,10 +198,10 @@ export const importSpeech = ({
       uid: newBlockUid,
       text: roamFormatDate,
       children: [{
-        text: "[[Automated transcirpt from otter]]",
+        text: "[[Automated transcript from otter]]",
         children: [
           {
-          text: 'Recroding Metadata',
+          text: 'Recording Metadata',
           children: [
             {
               text: 'Date:: '+ roamFormatDate,
@@ -222,7 +222,7 @@ export const importSpeech = ({
 
           ],
         },
-        { text: "{{[[TODO]]}} [[Transcricpt]]", 
+        { text: "{{[[TODO]]}} [[Transcript]]", 
           children: [ {text: theTransciptAsOneBlock}]
         }
       ],
@@ -234,10 +234,10 @@ export const importSpeech = ({
       uid: newBlockUid,
       text: roamFormatDate,
       children: [{
-        text: "[[Automated transcirpt from otter]] #[[transcribed verbal notes]]",
+        text: "[[Automated transcript from otter]] #[[transcribed verbal notes]]",
         children: [
           {
-          text: 'Recroding Metadata',
+          text: 'Recording Metadata',
           children: [
             {
               text: 'Date:: '+ roamFormatDate,
@@ -261,7 +261,7 @@ export const importSpeech = ({
             },
           ],
         },
-        { text: "{{[[TODO]]}} [[Transcricpt]]", 
+        { text: "{{[[TODO]]}} [[Transcript]]", 
           children: [ {text: theTransciptAsOneBlock}]
         }
       ],
@@ -273,10 +273,10 @@ export const importSpeech = ({
       uid: newBlockUid,
       text: `${roamFormatDate} #[[Walking Journal]]`,
       children: [{
-        text: "[[Automated transcirpt from otter]]",
+        text: "[[Automated transcript from otter]]",
         children: [
           {
-          text: 'Recroding Metadata',
+          text: 'Recording Metadata',
           children: [
             {
               text: 'Date:: '+ roamFormatDate,
@@ -297,7 +297,7 @@ export const importSpeech = ({
   
           ],
         },
-        { text: "{{[[TODO]]}} [[Transcricpt]]", 
+        { text: "{{[[TODO]]}} [[Transcript]]", 
           children: [ {text: theTransciptAsOneBlock}]
         }
       ],
